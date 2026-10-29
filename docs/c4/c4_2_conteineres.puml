@@ -1,0 +1,34 @@
+@startuml C4_Conteineres_GameVault
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Diagrama de Contêineres (C4 Nível 2) - GameVault com camada de mensageria
+
+AddElementTag("novo", $bgColor="#c0392b", $borderColor="#7f1d1d", $legendText="Nova camada de comunicação")
+
+Person(pessoa, "Usuário / Visitante / Admin", "Usa o GameVault pelo navegador")
+System_Ext(email, "Serviço de E-mail / Push", "Avisos aos usuários")
+
+System_Boundary(gv, "GameVault") {
+  Container(spa, "SPA", "Vue 3, Vite, Pinia", "Feed, detalhe, upload, perfil e painel admin")
+  Container(api, "API REST", "Node.js, Express (monólito modular)", "Contextos: Identidade, Publicações, Interações, Descoberta e Moderação")
+  ContainerQueue(kafka, "Event Broker", "Apache Kafka", "Tópicos <contexto>.eventos, chave = ID do agregado, grupos de consumidores", $tags="novo")
+  Container(wmidia, "Worker de Mídia", "Node.js, kafkajs, FFmpeg", "Gera miniaturas, normaliza vídeos e apaga arquivos antigos")
+  Container(westat, "Worker de Estatísticas e Notificações", "Node.js, kafkajs", "Soma visualizações em lote e envia avisos")
+  ContainerDb(db, "Banco de Dados", "MySQL/MariaDB, Sequelize", "Usuários, publicações, curtidas, comentários e tabela outbox")
+  ContainerDb(midia, "Armazenamento de Mídia", "public/uploads (futuro: objetos)", "Vídeos e fotos de perfil")
+}
+
+Rel(pessoa, spa, "Usa", "HTTPS")
+Rel(spa, api, "Chama", "JSON/HTTPS + JWT; stream com Range")
+Rel(api, db, "Lê e grava", "SQL")
+Rel(api, midia, "Grava e lê arquivos")
+Rel(api, kafka, "Produz eventos de domínio (via outbox)", "Kafka")
+Rel(kafka, api, "Entrega eventos aos handlers dos contextos", "grupos de consumidores")
+Rel(kafka, wmidia, "PublicacaoCriada, VideoTrocado, PublicacaoExcluida", "Kafka")
+Rel(kafka, westat, "VisualizacaoRegistrada, CurtidaRegistrada, ComentarioPublicado", "Kafka")
+Rel(wmidia, midia, "Gera e apaga arquivos")
+Rel(westat, db, "Atualiza contadores em lote", "SQL")
+Rel(westat, email, "Envia avisos", "API")
+
+SHOW_LEGEND()
+@enduml

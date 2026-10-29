@@ -1,0 +1,20 @@
+@startuml C4_Contexto_GameVault
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Diagrama de Contexto (C4 Nível 1) - GameVault
+
+Person(usuario, "Jogador / Usuário", "Publica gameplays e trailers, curte, comenta e segue outros jogadores")
+Person(visitante, "Visitante", "Vê detalhes de publicações e perfis públicos sem login")
+Person(admin, "Administrador", "Modera usuários e publicações")
+
+System(gamevault, "GameVault", "Rede social de gameplays e trailers de jogos")
+
+System_Ext(email, "Serviço de E-mail / Push", "Envia avisos de curtidas, comentários e novas publicações")
+
+Rel(usuario, gamevault, "Publica, curte, comenta e assiste", "HTTPS")
+Rel(visitante, gamevault, "Navega", "HTTPS")
+Rel(admin, gamevault, "Administra", "HTTPS")
+Rel(gamevault, email, "Envia avisos", "API")
+
+SHOW_LEGEND()
+@enduml

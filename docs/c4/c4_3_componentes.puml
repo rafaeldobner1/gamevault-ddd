@@ -1,0 +1,33 @@
+@startuml C4_Componentes_GameVault
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Diagrama de Componentes (C4 Nível 3) - Camada de comunicação (exclusão de publicação)
+
+AddElementTag("novo", $bgColor="#c0392b", $borderColor="#7f1d1d", $legendText="Nova camada de comunicação")
+
+Container(spa, "SPA", "Vue 3", "Envia DELETE /api/games/:id")
+ContainerQueue(kafka, "Apache Kafka", "Broker", "Tópico publicacoes.eventos", $tags="novo")
+Container(wmidia, "Worker de Mídia", "Node.js, kafkajs", "Grupo 'midia': apaga o vídeo do disco")
+
+Container_Boundary(api, "API REST - Node.js/Express") {
+  Component(ctl, "publicacoes.controller", "Express", "Traduz a requisição HTTP para o caso de uso")
+  Component(uc, "ExcluirPublicacao", "Caso de uso - Publicações", "Valida o dono (404 antes de 403), remove a publicação e registra PublicacaoExcluida")
+  Component(port, "EventBus", "Porta - shared-kernel", "publish() / subscribe()")
+  Component(adp, "KafkaEventBus + OutboxRelay", "Adaptador - kafkajs", "Grava na outbox na mesma transação; produz com acks=all e chave = publicacaoId", $tags="novo")
+  Component(h1, "RemoverInteracoesDaPublicacao", "Handler - Interações", "Grupo 'interacoes': apaga curtidas e comentários")
+  Component(h2, "AtualizarContadorDePublicacoes", "Handler - Identidade", "Grupo 'identidade': decrementa gamesCount")
+  Component(h3, "ProjetarEventos", "Handler - Descoberta", "Grupo 'descoberta': remove do feed e da busca")
+}
+
+Rel(spa, ctl, "DELETE /api/games/:id", "HTTPS")
+Rel(ctl, uc, "Executa")
+Rel(uc, port, "Publica PublicacaoExcluida")
+Rel_R(port, adp, "Implementada por")
+Rel(adp, kafka, "Produz", "Kafka")
+Rel(kafka, h1, "Entrega")
+Rel(kafka, h2, "Entrega")
+Rel(kafka, h3, "Entrega")
+Rel(kafka, wmidia, "Entrega")
+
+SHOW_LEGEND()
+@enduml
