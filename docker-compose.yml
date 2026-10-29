@@ -1,0 +1,5 @@
+# api, mysql, kafka, kafka-ui, workers
+services:
+  mysql:    { image: mariadb:11 }
+  kafka:    { image: apache/kafka:3.7.0 }
+  kafka-ui: { image: provectuslabs/kafka-ui:latest }

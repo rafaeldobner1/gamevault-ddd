@@ -1,0 +1,11 @@
+{
+  "name": "gamevault-ddd",
+  "version": "2.0.0",
+  "description": "GameVault - arquitetura DDD/hexagonal (N2 Projeto e Arquitetura de Software)",
+  "main": "src/main/server.js",
+  "dependencies": {
+    "express": "^4.21.1", "sequelize": "^6.37.8", "mysql2": "^3.24.2",
+    "bcryptjs": "^3.0.3", "jsonwebtoken": "^9.0.3", "multer": "^2.0.2",
+    "express-validator": "^7.3.2", "kafkajs": "^2.2.4"
+  }
+}
